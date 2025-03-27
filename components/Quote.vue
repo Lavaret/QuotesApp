@@ -8,13 +8,13 @@
       <Icon name="ri:double-quotes-l" class="text-stone-500"/>
       <slot name="content"/>
     </div>
-    <div class="flex justify-end gap-2 items-center">
+    <div class="flex justify-end gap-2 items-center" v-if="$slots.author">
       <Icon name="teenyicons:minus-solid" class="text-stone-500 text-lg"/>
       <div>
         <slot name="author"/>
       </div>
     </div>
-    <div class="text-right">
+    <div class="text-right text-stone-600 text-sm">
       <slot name="source"/>
     </div>
   </div>
