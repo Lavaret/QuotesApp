@@ -37,30 +37,10 @@
               <p class="mb-5 !mt-0 text-stone-600 text-sm !leading-normal">
                 You can access additional functionalities after login in to the app.
               </p>
-              <fieldset class="mb-[15px] w-full flex flex-col justify-start">
-                <label
-                    class="text-xs leading-none mb-2.5 text-green12 block"
-                    for="name"
-                > Name </label>
-                <input
-                    id="name"
-                    class="bg-stone-50 grow shrink-0 rounded-md px-2.5 text-sm leading-none text-grass11 shadow-[0_0_0_1px] shadow-green7 h-[35px] focus:shadow-[0_0_0_2px] focus:shadow-green8 outline-none"
-                    value="Pedro Duarte"
-                >
-              </fieldset>
-              <fieldset class="mb-[15px] w-full flex flex-col justify-start">
-                <label
-                    class="text-xs leading-none mb-2.5 text-green12 block"
-                    for="username"
-                > Username </label>
-                <input
-                    id="username"
-                    class="bg-stone-50 grow shrink-0 rounded-md px-2.5 text-sm leading-none text-grass11 shadow-[0_0_0_1px] shadow-green7 h-[35px] focus:shadow-[0_0_0_2px] focus:shadow-green8 outline-none"
-                    value="@peduarte"
-                >
-              </fieldset>
+              <InputField label="Mail" name="mail" type="email" v-model="login.email" />
+              <InputField label="Password" name="password" type="password" v-model="login.password" />
               <div class="flex justify-end mt-5">
-                <Button>Log in</Button>
+                <Button @click="() => console.log(login)">Log in</Button>
               </div>
             </TabsContent>
             <TabsContent
@@ -70,43 +50,10 @@
               <p class="mb-5 !mt-0 text-stone-600 text-sm !leading-normal">
                 If you don't have account in the app, you can create one here!
               </p>
-              <fieldset class="mb-[15px] w-full flex flex-col justify-start">
-                <label
-                    class="text-xs leading-none mb-2.5 text-green12 block"
-                    for="currentPassword"
-                >
-                  Email
-                </label>
-                <input
-                    id="currentPassword"
-                    class="bg-stone-50 grow shrink-0 rounded-md px-2.5 text-sm leading-none text-grass11 shadow-[0_0_0_1px] shadow-green7 h-[35px] focus:shadow-[0_0_0_2px] focus:shadow-green8 outline-none"
-                    type="password"
-                >
-              </fieldset>
-              <fieldset class="mb-[15px] w-full flex flex-col justify-start">
-                <label
-                    class="text-xs leading-none mb-2.5 text-green12 block"
-                    for="newPassword"
-                > New password </label>
-                <input
-                    id="newPassword"
-                    class="bg-stone-50 grow shrink-0 rounded-md px-2.5 text-sm leading-none text-grass11 shadow-[0_0_0_1px] shadow-green7 h-[35px] focus:shadow-[0_0_0_2px] focus:shadow-green8 outline-none"
-                    type="password"
-                >
-              </fieldset>
-              <fieldset class="mb-[15px] w-full flex flex-col justify-start">
-                <label
-                    class="text-xs leading-none mb-2.5 text-green12 block"
-                    for="confirmPassword"
-                >
-                  Confirm password
-                </label>
-                <input
-                    id="confirmPassword"
-                    class="bg-stone-50 grow shrink-0 rounded-md px-2.5 text-sm leading-none text-grass11 shadow-[0_0_0_1px] shadow-green7 h-[35px] focus:shadow-[0_0_0_2px] focus:shadow-green8 outline-none"
-                    type="password"
-                >
-              </fieldset>
+              <InputField label="Name" name="name" type="text" v-model="newAccount.name" />
+              <InputField label="Email" name="email" type="email" v-model="newAccount.email" />
+              <InputField label="Password" name="password" type="password" v-model="newAccount.password" />
+              <InputField label="Confirm password" name="confirm_password" type="password"/>
               <div class="flex justify-end mt-5">
                 <Button>Create account</Button>
               </div>
@@ -128,3 +75,30 @@
 <style>
 
 </style>
+<script setup lang="ts">
+import InputField from "~/components/InputField.vue";
+import { reactive } from 'vue'
+import {PopoverContent, PopoverPortal, PopoverRoot, TabsContent} from "reka-ui";
+
+interface LoginCredentials {
+  email: string
+  password: string
+}
+
+interface NewAccount {
+  email: string
+  password: string
+  name: string
+}
+
+const login: LoginCredentials = reactive({
+  email: '',
+  password: '',
+})
+
+const newAccount: NewAccount = reactive({
+  email: '',
+  password: '',
+  name: ''
+})
+</script>
