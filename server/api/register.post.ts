@@ -15,7 +15,7 @@ export default defineEventHandler(async (event: any) => {
     });
 
     if (existingUser) {
-        throw createError({ statusCode: 400, statusMessage: "Użytkownik już istnieje" });
+        throw createError({ statusCode: 401, statusMessage: "Użytkownik już istnieje" });
     }
 
     const hashedPassword = await bcrypt.hash(body.password, 10);

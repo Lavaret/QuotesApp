@@ -1,6 +1,15 @@
 import prisma from "../database"
 
 export default defineEventHandler(async (event: any) => {
+    interface Post {
+        id: number,
+        sourceInfo?: string,
+        sourceId: number,
+        author: string,
+        content?: string,
+        published: boolean,
+        creatorId: number,
+    }
 
     if (event.method === 'POST') {
         const body = await readBody(event);
@@ -9,10 +18,14 @@ export default defineEventHandler(async (event: any) => {
             throw createError({ statusCode: 400, statusMessage: "Invalid data" });
         }
 
-        return await prisma.post.create({
-            data: {
+        const post: Post = {
                 author: body.author,
                 content: body.content,
+            }
+
+        return prisma.post.create({
+            data: {
+                ...post
             },
         });
     }

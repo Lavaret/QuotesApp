@@ -16,6 +16,7 @@
     "@nuxtjs/tailwindcss": "^6.13.2",
     "@pinia/nuxt": "^0.10.1",
     "@prisma/client": "^6.5.0",
+    "@vee-validate/nuxt": "^4.15.0",
     "@vueuse/core": "^13.0.0",
     "@vueuse/nuxt": "^13.0.0",
     "bcrypt": "^5.1.1",
@@ -24,7 +25,8 @@
     "pinia": "^3.0.1",
     "reka-ui": "^2.1.1",
     "vue": "^3.5.13",
-    "vue-router": "^4.5.0"
+    "vue-router": "^4.5.0",
+    "yup": "^1.6.1"
   },
   "devDependencies": {
     "prisma": "^6.5.0"

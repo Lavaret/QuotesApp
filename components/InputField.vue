@@ -23,9 +23,12 @@ const model = defineModel()
         v-model="model"
         :type="type"
     >
+    <VeeErrorMessage :name="name"/>
   </fieldset>
 </template>
 
 <style scoped>
-
+[role='alert'] {
+  @apply text-sm text-red-400 mt-1;
+}
 </style>

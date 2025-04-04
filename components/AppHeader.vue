@@ -34,29 +34,13 @@
                 class="grow p-5 rounded-b-md outline-none focus:shadow-[0_0_0_2px] focus:shadow-black"
                 value="tab1"
             >
-              <p class="mb-5 !mt-0 text-stone-600 text-sm !leading-normal">
-                You can access additional functionalities after login in to the app.
-              </p>
-              <InputField label="Mail" name="mail" type="email" v-model="login.email" />
-              <InputField label="Password" name="password" type="password" v-model="login.password" />
-              <div class="flex justify-end mt-5">
-                <Button @click="() => console.log(login)">Log in</Button>
-              </div>
+              <LoginComponent/>
             </TabsContent>
             <TabsContent
                 class="grow p-5 rounded-b-md outline-none focus:shadow-[0_0_0_2px] focus:shadow-black"
                 value="tab2"
             >
-              <p class="mb-5 !mt-0 text-stone-600 text-sm !leading-normal">
-                If you don't have account in the app, you can create one here!
-              </p>
-              <InputField label="Name" name="name" type="text" v-model="newAccount.name" />
-              <InputField label="Email" name="email" type="email" v-model="newAccount.email" />
-              <InputField label="Password" name="password" type="password" v-model="newAccount.password" />
-              <InputField label="Confirm password" name="confirm_password" type="password"/>
-              <div class="flex justify-end mt-5">
-                <Button>Create account</Button>
-              </div>
+              <RegisterComponent />
             </TabsContent>
           </TabsRoot>
 <!--          <PopoverClose-->
@@ -76,29 +60,8 @@
 
 </style>
 <script setup lang="ts">
-import InputField from "~/components/InputField.vue";
-import { reactive } from 'vue'
-import {PopoverContent, PopoverPortal, PopoverRoot, TabsContent} from "reka-ui";
+import { reactive, ref } from 'vue'
+import { PopoverContent, PopoverPortal, PopoverRoot, TabsContent } from "reka-ui";
 
-interface LoginCredentials {
-  email: string
-  password: string
-}
 
-interface NewAccount {
-  email: string
-  password: string
-  name: string
-}
-
-const login: LoginCredentials = reactive({
-  email: '',
-  password: '',
-})
-
-const newAccount: NewAccount = reactive({
-  email: '',
-  password: '',
-  name: ''
-})
 </script>

@@ -12,3 +12,6 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
   }
 }
+
+declare module 'bcrypt'
+declare module 'jsonwebtoken'
