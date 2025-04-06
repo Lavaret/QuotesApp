@@ -18,7 +18,7 @@
             <Icon @click="addNewQuote = false" name="line-md:close-circle" class="icon cursor-pointer text-stone-900 size-6" />
           </template>
           <template #content>
-            <textarea v-model="newPost.content" class="input w-full p-3" placeholder="I have no special talent. I am only passionately curious."></textarea>
+            <textarea v-model="newPost.content" class="input w-full p-3 rounded-lg" placeholder="I have no special talent. I am only passionately curious."></textarea>
           </template>
           <template #author>
             <input v-model="newPost.author" type="text" class="input p-2" placeholder="Albert Einstein"/>

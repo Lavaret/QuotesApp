@@ -13,5 +13,3 @@ declare module 'vue' {
   }
 }
 
-declare module 'bcrypt'
-declare module 'jsonwebtoken'
