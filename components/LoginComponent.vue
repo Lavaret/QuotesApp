@@ -4,13 +4,14 @@
       You can access additional functionalities after login in to the app.
     </p>
 
+    <p v-if="successMessage" class="text-sm my-3 text-green-600">{{ successMessage }}</p>
     <p v-if="errorMessage" class="text-sm my-3 text-red-500">{{ errorMessage }}</p>
 
     <VeeForm @submit="handleLogin" v-slot="{ values, errors }" :validation-schema="schema">
-      <VeeField name="mail" type="email" v-model="login.email" v-slot="{ field }">
+      <VeeField name="mail" type="email" v-model="loginForm.email" v-slot="{ field }">
         <InputField v-bind="field" label="Mail" />
       </VeeField>
-      <VeeField name="password" type="password" v-model="login.password" v-slot="{ field }">
+      <VeeField name="password" type="password" v-model="loginForm.password" v-slot="{ field }">
         <InputField v-bind="field" label="Password" />
       </VeeField>
         <div class="flex justify-end mt-5">
@@ -24,7 +25,10 @@
 import * as yup from 'yup';
 
 const errorMessage = ref('')
+const successMessage = ref('')
 const loading = ref(false)
+
+const { login: authLogin } = useAuth()
 const validateEmail = yup.string().required().email();
 const validatePassword = yup.string().required();
 
@@ -38,27 +42,45 @@ interface LoginCredentials {
   password: string
 }
 
-const login: LoginCredentials = reactive({
+const loginForm: LoginCredentials = reactive({
   email: '',
   password: '',
 })
 
 const handleLogin = async (): Promise<void> => {
+  // Clear previous messages
+  errorMessage.value = ''
+  successMessage.value = ''
+
   try {
     loading.value = true
 
     const res = await $fetch('/api/login', {
       method: 'POST',
-      body: login
+      body: loginForm
     })
 
-    console.log(res)
-  } catch (e) {
+    // Login successful
+    if (res.token && res.user) {
+      authLogin(res.token, res.user)
+      successMessage.value = 'Login successful! Welcome back!'
+      
+      // Clear the form
+      loginForm.email = ''
+      loginForm.password = ''
+      
+      // Close the popover after successful login
+      setTimeout(() => {
+        window.location.reload()
+      }, 1000)
+    }
+  } catch (e: any) {
     if (e.status === 400) {
       errorMessage.value = 'Missing credentials'
-    }
-    if (e.status === 401) {
+    } else if (e.status === 401) {
       errorMessage.value = 'Login credentials are incorrect'
+    } else {
+      errorMessage.value = 'Login failed. Please try again.'
     }
   } finally {
     loading.value = false

@@ -1,109 +1,74 @@
 <template>
-  <div class="flex m-2">
-    <div class="bg-stone-300 w-1/4"></div>
-    <div class="bg-stone-200 min-h-32 w-1/2 flex flex-col gap-4">
-      <div class="flex justify-between mt-2 p-2">
-        <div class="font-bold p-3">
-          <h1 class="header-1 ">Welcome to the homepage</h1>
+  <div class="min-h-full py-8 px-4">
+    <div class="max-w-4xl mx-auto">
+      <!-- Page Header -->
+      <div class="mb-8">
+        <div class="text-center mb-6">
+          <h1 class="text-4xl font-bold bg-gradient-to-r from-pink-600 via-rose-600 to-purple-600 bg-clip-text text-transparent mb-3">
+            Your Quotes Space
+          </h1>
+          <p class="text-gray-600 text-lg">Discover, save, and share wisdom from around the world</p>
         </div>
-        <div>
-          <Button icon="pajamas:todo-add" @click="addNewQuote = true">Add quote</Button>
+        
+        <div class="flex justify-center">
+          <button 
+            @click="addNewQuote = true" 
+            class="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2"
+            :disabled="addNewQuote"
+          >
+            <Icon name="ph:plus-circle" class="size-5" />
+            Add New Quote
+          </button>
         </div>
       </div>
 
-      <div class="space-y-4" ref="container">
-        <Quote v-if="addNewQuote">
-          <template #icons>
-            <Icon @click="handleFormSubmit" name="line-md:circle-twotone-to-confirm-circle-transition" :style="{color: 'hotpink'}" class="icon cursor-pointer size-6" />
-            <Icon @click="addNewQuote = false" name="line-md:close-circle" class="icon cursor-pointer text-stone-900 size-6" />
+      <!-- Quotes Container -->
+      <div class="space-y-6" ref="container">
+        <QuoteForm 
+          v-if="addNewQuote" 
+          @cancel="handleNewQuoteCancel"
+          @success="handleNewQuoteSuccess"
+        />
+        
+        <!-- Display actual posts from database -->
+        <Quote 
+          v-for="post in posts" 
+          :key="post.id" 
+          :post="post"
+          @updated="handleQuoteUpdated"
+        >
+          <template #author v-if="post.author?.name">
+            {{ post.author.name }}
           </template>
-          <template #content>
-            <textarea v-model="newPost.content" class="input w-full p-3 rounded-lg" placeholder="I have no special talent. I am only passionately curious."></textarea>
+          <template #content v-if="post.content">
+            {{ post.content }}
           </template>
-          <template #author>
-            <input v-model="newPost.author" type="text" class="input p-2" placeholder="Albert Einstein"/>
-          </template>
-          <template #source>
-            <div class="flex justify-end gap-2 my-2 flex-wrap">
-              <input v-model="newPost.source" type="text" class="input p-2" placeholder="Source"/>
-              <input v-model="newPost.additionalInfo" type="text" class="input p-2" placeholder="Additional info"/>
+          <template #source v-if="post.source?.title || post.sourceInfo">
+            <div class="flex flex-col gap-1">
+              <span v-if="post.source?.title">{{ post.source.title }}</span>
+              <span v-if="post.sourceInfo" class="text-xs text-stone-500">{{ post.sourceInfo }}</span>
             </div>
           </template>
         </Quote>
-        <Quote>
-          <template #author>
-            Albert Einstein
-          </template>
-          <template #content>
-            If you can't explain it simply, you don't understand it well enough.
-          </template>
-        </Quote>
-
-        <Quote>
-          <template #author>
-            Lara Croft
-          </template>
-          <template #content>
-            Czasami odwaga jednego może przeważyć nad tchórzostwem wielu.
-          </template>
-        </Quote>
-
-        <Quote>
-          <template #author>
-            Dr Sayer
-          </template>
-          <template #content>
-            Przepraszam, gdybyś miał rację, tobym się z Tobą zgodził.
-          </template>
-          <template #source>
-            przebudzenia (film)
-          </template>
-        </Quote>
-
-        <Quote>
-          <template #author>
-            Joseph Townsend
-          </template>
-          <template #content>
-            W zasadzie tylko głód potrafi pobudzić ubogich do pracy.
-          </template>
-          <template #source>
-            Głód s. 245
-          </template>
-        </Quote>
-
-        <Quote>
-          <template #content>
-            Jeszcze jedną niezwykłą cechą jego wykładów było to, że nie unikał słów "nie wiemy". "Nie wiemy" było kierunkowskazem
-            do odkrycia nowej prawdy, a nie wstydliwym przyznaniem się do niewiedzy.
-          </template>
-          <template #source>
-            Ukochane równanie profesora
-          </template>
-        </Quote>
-
-        <Quote>
-          <template #content>
-            Im więcej możesz tym skromniej używaj.
-          </template>
-          <template #author>
-            Marek Aureliusz
-          </template>
-        </Quote>
-
-        <Quote>
-          <template #content>
-            Ani skarby ani armia ani władza nie ocalą władcy, na tronie bezpieczni są tylko Ci, których otacza miłość.
-          </template>
-          <template #author>
-            Marek Aureliusz
-          </template>
-        </Quote>
-
+        
+        <!-- Fallback message if no posts -->
+        <div v-if="!posts || posts.length === 0" class="text-center py-16">
+          <div class="bg-gradient-to-br from-pink-100 to-rose-100 rounded-2xl p-12 max-w-md mx-auto">
+            <div class="bg-gradient-to-r from-pink-500 to-rose-500 p-4 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center">
+              <Icon name="icon-park-outline:quote" class="size-10 text-white" />
+            </div>
+            <h3 class="text-2xl font-bold text-gray-800 mb-3">No quotes yet</h3>
+            <p class="text-gray-600 mb-6">Start building your collection of inspiring quotes!</p>
+            <button 
+              @click="addNewQuote = true" 
+              class="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white px-6 py-2 rounded-lg transition-all duration-200 font-medium"
+            >
+              Add your first quote
+            </button>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="bg-stone-300 w-1/4"></div>
-
   </div>
 </template>
 
@@ -113,25 +78,24 @@ import autoAnimate from "@formkit/auto-animate"
 
 const container = ref() // we need a DOM node
 
-const { data: posts } = await useFetch('/api/posts')
-
-const newPost = ref({
-  content: '',
-  author: '',
-  source: '',
-  additionalInfo: ''
-})
-
-async function handleFormSubmit() {
-  const res = await $fetch('/api/posts', {
-    method: 'POST',
-    body: newPost.value
-  })
-
-  console.log(res)
-}
+const { data: posts, refresh: refreshPosts } = await useFetch('/api/posts')
 
 const addNewQuote = ref(false)
+
+const handleNewQuoteCancel = () => {
+  addNewQuote.value = false
+}
+
+const handleNewQuoteSuccess = async () => {
+  // Refresh the posts list when a new quote is created
+  await refreshPosts()
+  // The QuoteForm component will handle closing itself after success
+}
+
+const handleQuoteUpdated = async () => {
+  // Refresh the posts list when a quote is updated
+  await refreshPosts()
+}
 
 onMounted(() => {
   autoAnimate(container.value)
@@ -141,5 +105,10 @@ onMounted(() => {
 <style>
 .input {
   @apply bg-transparent border border-2 border-stone-300 rounded-md
+}
+
+/* Animation for icons */
+.icon {
+  @apply transition delay-150 duration-300 ease-in-out hover:scale-125
 }
 </style>

@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 import { defineEventHandler, createError } from 'h3'
 import { redis } from '~/server/utils/redis'
 
@@ -32,7 +33,17 @@ export default defineEventHandler(async (event: any) => {
         },
     });
 
-    return { message: "Konto utworzone", userId: user.id };
+    const token = jwt.sign(
+        { userId: user.id, email: user.email },
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' }
+    );
+
+    return { 
+        message: "Konto utworzone", 
+        token, 
+        user: { id: user.id, email: user.email, name: user.name } 
+    };
 });
 
 const incrementRegisterCounter = async (event: any) => {

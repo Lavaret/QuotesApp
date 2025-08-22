@@ -4,6 +4,7 @@
       If you don't have account in the app, you can create one here!
     </p>
 
+    <p v-if="successMessage" class="text-sm my-3 text-green-600">{{ successMessage }}</p>
     <p v-if="errorMessage" class="text-sm my-3 text-red-500">{{ errorMessage }}</p>
 
     <VeeForm @submit="createAccount" v-slot="{ values, errors }" :validation-schema="schema">
@@ -43,8 +44,11 @@ const newAccount: NewAccount = reactive({
 })
 
 const errorMessage = ref('')
+const successMessage = ref('')
 const loading = ref(false)
 const confirmPassword = ref('')
+
+const { login } = useAuth()
 
 const schema = {
   name: yup.string().required().min(3, 'this must be least 3 characters'),
@@ -61,6 +65,9 @@ const schema = {
 
 
 const createAccount = async (): Promise<void> => {
+  // Clear previous messages
+  errorMessage.value = ''
+  successMessage.value = ''
 
   if (newAccount.password !== confirmPassword.value) {
     errorMessage.value = 'Confirm password and password do not match'
@@ -75,13 +82,32 @@ const createAccount = async (): Promise<void> => {
       body: newAccount
     })
 
-    console.log(res)
-  } catch (e) {
+    // Registration successful - log the user in automatically
+    if (res.token && res.user) {
+      login(res.token, res.user)
+      successMessage.value = res.message + ' - You are now logged in!'
+      
+      // Clear the form
+      newAccount.email = ''
+      newAccount.password = ''
+      newAccount.name = ''
+      confirmPassword.value = ''
+      
+      // Close the popover after successful registration
+      setTimeout(() => {
+        // Emit an event to close the popover or refresh the page
+        window.location.reload()
+      }, 1500)
+    }
+  } catch (e: any) {
     if (e.status === 400) {
       errorMessage.value = 'Missing credentials'
-    }
-    if (e.status === 401) {
-      errorMessage.value = 'User already exist'
+    } else if (e.status === 401) {
+      errorMessage.value = 'User already exists'
+    } else if (e.status === 429) {
+      errorMessage.value = 'Too many registration attempts. Please try again later.'
+    } else {
+      errorMessage.value = 'Registration failed. Please try again.'
     }
   } finally {
     loading.value = false
