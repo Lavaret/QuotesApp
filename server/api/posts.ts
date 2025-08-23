@@ -1,5 +1,5 @@
 import prisma from "../database"
-import jwt from 'jsonwebtoken'
+import { requireAuth, verifyAuth } from "../utils/auth"
 
 export default defineEventHandler(async (event: any) => {
     if (event.method === 'POST') {
@@ -9,19 +9,8 @@ export default defineEventHandler(async (event: any) => {
             throw createError({ statusCode: 400, statusMessage: "Author and content are required" });
         }
 
-        // Get user from auth token
-        const token = getHeader(event, 'authorization')?.split(' ')[1];
-        if (!token) {
-            throw createError({ statusCode: 401, statusMessage: "Authentication required" });
-        }
-
-        let userId;
-        try {
-            const decoded = jwt.verify(token, process.env.JWT_SECRET) as any;
-            userId = decoded.userId;
-        } catch {
-            throw createError({ statusCode: 401, statusMessage: "Invalid token" });
-        }
+        // Get authenticated user ID
+        const userId = requireAuth(event);
 
         // Create or find author
         let author = await prisma.author.findFirst({
@@ -72,7 +61,8 @@ export default defineEventHandler(async (event: any) => {
                 sourceInfo: body.additionalInfo || null,
                 sourceId: sourceId,
                 creatorId: userId,
-                published: true
+                published: true,
+                private: body.private || false
             },
             include: {
                 author: true,
@@ -97,19 +87,8 @@ export default defineEventHandler(async (event: any) => {
             throw createError({ statusCode: 400, statusMessage: "ID, author and content are required" });
         }
 
-        // Get user from auth token
-        const token = getHeader(event, 'authorization')?.split(' ')[1];
-        if (!token) {
-            throw createError({ statusCode: 401, statusMessage: "Authentication required" });
-        }
-
-        let userId;
-        try {
-            const decoded = jwt.verify(token, process.env.JWT_SECRET) as any;
-            userId = decoded.userId;
-        } catch {
-            throw createError({ statusCode: 401, statusMessage: "Invalid token" });
-        }
+        // Get authenticated user ID
+        const userId = requireAuth(event);
 
         // Check if the post exists and belongs to the user
         const existingPost = await prisma.post.findUnique({
@@ -160,7 +139,8 @@ export default defineEventHandler(async (event: any) => {
                 authorId: author.id,
                 content: body.content,
                 sourceInfo: body.additionalInfo || null,
-                sourceId: sourceId
+                sourceId: sourceId,
+                private: body.private !== undefined ? body.private : existingPost.private
             },
             include: {
                 author: true,
@@ -178,8 +158,23 @@ export default defineEventHandler(async (event: any) => {
         return updatedPost;
     }
 
-    // GET request - return all posts with related data
-    return await prisma.post.findMany({
+    // GET request - return posts with related data, filtering private quotes
+    // Check if user is authenticated (optional for GET)
+    const authResult = verifyAuth(event);
+    const userId = authResult.isAuthenticated ? authResult.userId : null;
+    
+    // Build where clause based on authentication status
+    const whereClause = userId ? {
+        OR: [
+            { private: false },  // Show all public quotes
+            { AND: [{ private: true }, { creatorId: userId }] }  // Show private quotes only for the author
+        ]
+    } : {
+        private: false  // Show only public quotes for unauthenticated users
+    };
+    
+    return prisma.post.findMany({
+        where: whereClause,
         include: {
             author: true,
             source: true,
@@ -194,5 +189,5 @@ export default defineEventHandler(async (event: any) => {
         orderBy: {
             id: 'desc'
         }
-    })
+    });
 })

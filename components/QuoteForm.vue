@@ -10,6 +10,7 @@ interface Post {
     title: string
   }
   sourceInfo?: string
+  private?: boolean
   creator?: {
     id: number
     name: string
@@ -33,6 +34,7 @@ interface FormData {
   author: string
   source: string
   additionalInfo: string
+  private: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -49,7 +51,8 @@ const form = ref<FormData>({
   content: '',
   author: '',
   source: '',
-  additionalInfo: ''
+  additionalInfo: '',
+  private: false
 })
 
 const loading = ref(false)
@@ -67,7 +70,8 @@ watch(() => props.post, (newPost) => {
       content: newPost.content || '',
       author: newPost.author?.name || '',
       source: newPost.source?.title || '',
-      additionalInfo: newPost.sourceInfo || ''
+      additionalInfo: newPost.sourceInfo || '',
+      private: newPost.private || false
     }
   }
 }, { immediate: true })
@@ -84,7 +88,8 @@ const resetForm = () => {
     content: '',
     author: '',
     source: '',
-    additionalInfo: ''
+    additionalInfo: '',
+    private: false
   }
   message.value = { text: '', type: '' }
 }
@@ -234,6 +239,28 @@ const submit = async () => {
                 :disabled="loading"
             />
           </div>
+        </div>
+
+        <!-- Private Quote Toggle -->
+        <div class="flex items-center justify-between p-4 bg-gray-50/50 rounded-xl border border-gray-200">
+          <div class="flex flex-col">
+            <label class="text-sm font-medium text-gray-700 mb-1">Private Quote</label>
+            <p class="text-xs text-gray-500">Private quotes are only visible to you</p>
+          </div>
+          <button
+              @click="form.private = !form.private"
+              type="button"
+              :class="[
+                'relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2',
+                form.private ? 'bg-pink-500' : 'bg-gray-200'
+              ]"
+              :disabled="loading"
+          >
+            <span :class="[
+              'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
+              form.private ? 'translate-x-6' : 'translate-x-1'
+            ]"></span>
+          </button>
         </div>
 
         <!-- Action Buttons -->

@@ -14,25 +14,37 @@
     
     <!-- Content wrapper -->
     <div class="relative z-10">
-        <!-- Action Icons -->
-        <div class="flex justify-end gap-3 mb-4" v-if="$slots.icons">
-          <slot name="icons" />
-        </div>
-        <div class="flex justify-end gap-3 mb-4" v-else>
-          <button 
-            v-if="canEdit" 
-            @click="startEdit" 
-            class="w-9 h-9 rounded-full hover:bg-pink-100 transition-colors duration-200 group/edit flex items-center justify-center"
-            title="Edit quote"
-          >
-            <Icon name="ph:pencil" class="size-5 text-gray-400 group-hover/edit:text-pink-500 transition-colors duration-200" />
-          </button>
-          <button class="w-9 h-9 rounded-full hover:bg-pink-100 transition-colors duration-200 group/share flex items-center justify-center">
-            <Icon name="ph:share-bold" class="size-5 text-gray-400 group-hover/share:text-pink-500 transition-colors duration-200" />
-          </button>
-          <button class="w-9 h-9 rounded-full hover:bg-pink-100 transition-colors duration-200 group/heart flex items-center justify-center">
-            <Icon name="ph:heart-bold" class="size-5 text-pink-400 group-hover/heart:text-pink-600 transition-colors duration-200" />
-          </button>
+        <!-- Action Icons (all aligned to the right) -->
+        <div class="flex justify-end items-center mb-4">
+          <div class="flex items-center gap-1">
+            <!-- Private Indicator with expanding animation -->
+            <div v-if="post?.private" class="group mr-1 overflow-hidden">
+              <div class="flex items-center h-8 hover:bg-gray-100 rounded-full transition-all duration-300 cursor-default w-8 group-hover:w-20">
+                <div class="flex items-center justify-center w-8 h-8 flex-shrink-0">
+                  <Icon name="ph:lock" class="size-4 text-gray-400 group-hover:text-gray-800 transition-all duration-300 group-hover:scale-110" />
+                </div>
+                <span class="text-xs font-medium text-gray-600 group-hover:text-gray-800 whitespace-nowrap pr-3 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                  Private
+                </span>
+              </div>
+            </div>
+            
+            <!-- Static Action Buttons -->
+            <button 
+              v-if="canEdit" 
+              @click="startEdit" 
+              class="w-8 h-8 rounded-full hover:bg-pink-100 transition-all duration-300 group/edit flex items-center justify-center"
+              title="Edit quote"
+            >
+              <Icon name="ph:pencil" class="size-4 text-gray-400 group-hover/edit:text-pink-500 transition-all duration-300 group-hover/edit:scale-110" />
+            </button>
+            <button class="w-8 h-8 rounded-full hover:bg-pink-100 transition-all duration-300 group/share flex items-center justify-center" title="Share quote">
+              <Icon name="ph:share-bold" class="size-4 text-gray-400 group-hover/share:text-pink-500 transition-all duration-300 group-hover/share:scale-110" />
+            </button>
+            <button class="w-8 h-8 rounded-full hover:bg-pink-100 transition-all duration-300 group/heart flex items-center justify-center" title="Like quote">
+              <Icon name="ph:heart-bold" class="size-4 text-pink-400 group-hover/heart:text-pink-600 transition-all duration-300 group-hover/heart:scale-110" />
+            </button>
+          </div>
         </div>
 
         <!-- Quote Content -->
@@ -76,6 +88,7 @@ interface Props {
       title: string
     }
     sourceInfo?: string
+    private?: boolean
     creator?: {
       id: number
       name: string

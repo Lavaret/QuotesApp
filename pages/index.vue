@@ -77,8 +77,27 @@ import { ref, onMounted } from 'vue'
 import autoAnimate from "@formkit/auto-animate"
 
 const container = ref() // we need a DOM node
+const { authState } = useAuth()
 
+// Fetch posts (initially without auth headers)
 const { data: posts, refresh: refreshPosts } = await useFetch('/api/posts')
+
+// Function to refresh posts with current auth state
+const refreshPostsWithAuth = async () => {
+  await refreshPosts()
+}
+
+// Watch for auth state changes to refresh posts with proper headers
+watch(() => authState.value.isLoggedIn, async (isLoggedIn) => {
+  // Refresh posts when auth state changes
+  await $fetch('/api/posts', {
+    headers: isLoggedIn && authState.value.token 
+      ? { 'Authorization': `Bearer ${authState.value.token}` }
+      : {}
+  }).then(newPosts => {
+    posts.value = newPosts
+  })
+}, { immediate: false })
 
 const addNewQuote = ref(false)
 
@@ -87,18 +106,39 @@ const handleNewQuoteCancel = () => {
 }
 
 const handleNewQuoteSuccess = async () => {
-  // Refresh the posts list when a new quote is created
-  await refreshPosts()
+  // Refresh the posts list when a new quote is created with auth headers
+  await $fetch('/api/posts', {
+    headers: authState.value.isLoggedIn && authState.value.token 
+      ? { 'Authorization': `Bearer ${authState.value.token}` }
+      : {}
+  }).then(newPosts => {
+    posts.value = newPosts
+  })
   // The QuoteForm component will handle closing itself after success
 }
 
 const handleQuoteUpdated = async () => {
-  // Refresh the posts list when a quote is updated
-  await refreshPosts()
+  // Refresh the posts list when a quote is updated with auth headers
+  await $fetch('/api/posts', {
+    headers: authState.value.isLoggedIn && authState.value.token 
+      ? { 'Authorization': `Bearer ${authState.value.token}` }
+      : {}
+  }).then(newPosts => {
+    posts.value = newPosts
+  })
 }
 
-onMounted(() => {
+onMounted(async () => {
   autoAnimate(container.value)
+  
+  // Refresh posts with auth headers if user is already logged in
+  if (authState.value.isLoggedIn && authState.value.token) {
+    await $fetch('/api/posts', {
+      headers: { 'Authorization': `Bearer ${authState.value.token}` }
+    }).then(newPosts => {
+      posts.value = newPosts
+    })
+  }
 })
 </script>
 
