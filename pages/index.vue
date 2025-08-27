@@ -30,6 +30,30 @@
           @success="handleNewQuoteSuccess"
         />
         
+        <!-- Display temporary quotes (localStorage) -->
+        <Quote 
+          v-for="tempPost in tempPosts" 
+          :key="tempPost.id" 
+          :post="tempPost"
+          :show-remove="true"
+          class="border-l-4 border-amber-400"
+          @remove="removeTempPost(tempPost.id)"
+          @promote-temp-quotes="showPromotionModal"
+        >
+          <template #author v-if="tempPost.author?.name">
+            {{ tempPost.author.name }}
+          </template>
+          <template #content v-if="tempPost.content">
+            {{ tempPost.content }}
+          </template>
+          <template #source v-if="tempPost.source?.title || tempPost.sourceInfo">
+            <div class="flex flex-col gap-1">
+              <span v-if="tempPost.source?.title">{{ tempPost.source.title }}</span>
+              <span v-if="tempPost.sourceInfo" class="text-xs text-stone-500">{{ tempPost.sourceInfo }}</span>
+            </div>
+          </template>
+        </Quote>
+        
         <!-- Display actual posts from database -->
         <Quote 
           v-for="post in posts" 
@@ -52,7 +76,7 @@
         </Quote>
         
         <!-- Fallback message if no posts -->
-        <div v-if="!posts || posts.length === 0" class="text-center py-16">
+        <div v-if="(!posts || posts.length === 0) && tempPosts.length === 0" class="text-center py-16">
           <div class="bg-gradient-to-br from-pink-100 to-rose-100 rounded-2xl p-12 max-w-md mx-auto">
             <div class="bg-gradient-to-r from-pink-500 to-rose-500 p-4 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center">
               <Icon name="icon-park-outline:quote" class="size-10 text-white" />
@@ -69,6 +93,13 @@
         </div>
       </div>
     </div>
+    
+    <!-- Temporary Quote Promotion Modal -->
+    <TempQuotePromotion 
+      ref="promotionModal"
+      @promoted="handleQuotesPromoted"
+      @dismissed="handlePromotionDismissed"
+    />
   </div>
 </template>
 
@@ -78,6 +109,11 @@ import autoAnimate from "@formkit/auto-animate"
 
 const container = ref() // we need a DOM node
 const { authState } = useAuth()
+const { loadFavorites, syncGuestFavorites, clearFavorites, favorites, isFavorited } = useFavorites()
+const { tempPosts, removeTempPost } = useTempQuote()
+
+// Filter state
+const showFavoritesOnly = ref(false)
 
 // Fetch posts (initially without auth headers)
 const { data: posts, refresh: refreshPosts } = await useFetch('/api/posts')
@@ -89,6 +125,15 @@ const refreshPostsWithAuth = async () => {
 
 // Watch for auth state changes to refresh posts with proper headers
 watch(() => authState.value.isLoggedIn, async (isLoggedIn) => {
+  if (isLoggedIn) {
+    // User just logged in - sync guest favorites and load user favorites
+    await syncGuestFavorites()
+    await loadFavorites()
+  } else {
+    // User logged out - clear user favorites but keep guest favorites
+    clearFavorites()
+  }
+  
   // Refresh posts when auth state changes
   await $fetch('/api/posts', {
     headers: isLoggedIn && authState.value.token 
@@ -128,8 +173,32 @@ const handleQuoteUpdated = async () => {
   })
 }
 
+const handleQuotesPromoted = async () => {
+  // Refresh posts list after quotes are promoted
+  await handleNewQuoteSuccess()
+}
+
+const handlePromotionDismissed = () => {
+  // Handle when user dismisses the promotion modal
+  // Could add analytics or other tracking here
+}
+
+// Reference to the promotion modal
+const promotionModal = ref()
+
+const showPromotionModal = () => {
+  // Only show the promotion modal if user is logged in
+  if (authState.value.isLoggedIn && promotionModal.value) {
+    promotionModal.value.showModal()
+  }
+  // For non-logged-in users, the click does nothing (just visual feedback)
+}
+
 onMounted(async () => {
   autoAnimate(container.value)
+  
+  // Load favorites (will load from localStorage for guests or API for logged-in users)
+  await loadFavorites()
   
   // Refresh posts with auth headers if user is already logged in
   if (authState.value.isLoggedIn && authState.value.token) {

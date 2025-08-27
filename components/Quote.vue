@@ -17,6 +17,22 @@
         <!-- Action Icons (all aligned to the right) -->
         <div class="flex justify-end items-center mb-4">
           <div class="flex items-center gap-1">
+            <!-- Temporary Quote Indicator with expanding animation -->
+            <div v-if="post?.isTemporary" class="group mr-1 overflow-hidden">
+              <button 
+                @click="$emit('promote-temp-quotes')"
+                class="flex items-center h-8 hover:bg-amber-100 rounded-full transition-all duration-300 cursor-pointer w-8 group-hover:w-32 focus:outline-none focus:ring-2 focus:ring-amber-300"
+                title="Click to save all local quotes permanently"
+              >
+                <div class="flex items-center justify-center w-8 h-8 flex-shrink-0">
+                  <Icon name="heroicons:device-phone-mobile" class="size-4 text-amber-500 group-hover:text-amber-600 transition-all duration-300 group-hover:scale-110" />
+                </div>
+                <span class="text-xs font-medium text-amber-600 group-hover:text-amber-700 whitespace-nowrap pr-3 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                  Saved Locally
+                </span>
+              </button>
+            </div>
+            
             <!-- Private Indicator with expanding animation -->
             <div v-if="post?.private" class="group mr-1 overflow-hidden">
               <div class="flex items-center h-8 hover:bg-gray-100 rounded-full transition-all duration-300 cursor-default w-8 group-hover:w-20">
@@ -31,6 +47,14 @@
             
             <!-- Static Action Buttons -->
             <button 
+              v-if="showRemove" 
+              @click="$emit('remove')"
+              class="w-8 h-8 rounded-full hover:bg-red-100 transition-all duration-300 group/remove flex items-center justify-center"
+              title="Remove temporary quote"
+            >
+              <Icon name="heroicons:x-mark" class="size-4 text-gray-400 group-hover/remove:text-red-500 transition-all duration-300 group-hover/remove:scale-110" />
+            </button>
+            <button 
               v-if="canEdit" 
               @click="startEdit" 
               class="w-8 h-8 rounded-full hover:bg-pink-100 transition-all duration-300 group/edit flex items-center justify-center"
@@ -41,8 +65,21 @@
             <button class="w-8 h-8 rounded-full hover:bg-pink-100 transition-all duration-300 group/share flex items-center justify-center" title="Share quote">
               <Icon name="ph:share-bold" class="size-4 text-gray-400 group-hover/share:text-pink-500 transition-all duration-300 group-hover/share:scale-110" />
             </button>
-            <button class="w-8 h-8 rounded-full hover:bg-pink-100 transition-all duration-300 group/heart flex items-center justify-center" title="Like quote">
-              <Icon name="ph:heart-bold" class="size-4 text-pink-400 group-hover/heart:text-pink-600 transition-all duration-300 group-hover/heart:scale-110" />
+            <button 
+              @click="handleHeartClick" 
+              :class="[
+                'w-8 h-8 rounded-full transition-all duration-300 group/heart flex items-center justify-center hover:bg-pink-100',
+              ]" 
+              :title="isFavoritedPost ? 'Remove from favorites' : 'Add to favorites'"
+              :disabled="isTogglingFavorite"
+            >
+              <Icon 
+                :name="isFavoritedPost ? 'ph:heart-fill' : 'ph:heart-bold'" 
+                :class="[
+                  'size-4 transition-all duration-300 group-hover/heart:scale-110',
+                  isFavoritedPost ? 'text-pink-500 group-hover/heart:text-pink-600' : 'text-pink-400 group-hover/heart:text-pink-600'
+                ]" 
+              />
             </button>
           </div>
         </div>
@@ -78,7 +115,7 @@
 <script setup lang="ts">
 interface Props {
   post?: {
-    id: number
+    id: number | string
     author: {
       id: number
       name: string
@@ -94,21 +131,30 @@ interface Props {
       name: string
       email: string
     }
+    isTemporary?: boolean
   }
+  showRemove?: boolean
 }
 
 const props = defineProps<Props>()
-const emit = defineEmits(['updated'])
+const emit = defineEmits(['updated', 'remove', 'promote-temp-quotes'])
 
 const { authState } = useAuth()
+const { isFavorited, toggleFavorite } = useFavorites()
 
 const isEditing = ref(false)
+const isTogglingFavorite = ref(false)
 
 const canEdit = computed(() => {
   return authState.value.isLoggedIn && 
          props.post && 
          props.post.creator && 
          authState.value.user?.id === props.post.creator.id
+})
+
+// Check if current post is favorited
+const isFavoritedPost = computed(() => {
+  return props.post ? isFavorited(props.post.id) : false
 })
 
 const startEdit = () => {
@@ -122,6 +168,20 @@ const handleEditCancel = () => {
 const handleEditSuccess = () => {
   // Emit update event to refresh parent component
   emit('updated')
+}
+
+const handleHeartClick = async () => {
+  if (!props.post) return
+  
+  isTogglingFavorite.value = true
+  try {
+    await toggleFavorite(props.post.id)
+  } catch (error) {
+    console.error('Failed to toggle favorite:', error)
+    // You could add a toast notification here
+  } finally {
+    isTogglingFavorite.value = false
+  }
 }
 </script>
 

@@ -45,6 +45,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<Emits>()
 
 const { authState } = useAuth()
+const { saveTempQuote, getTempQuote, clearTempQuote, hasTempQuote, saveTempPost } = useTempQuote()
 
 // Form state
 const form = ref<FormData>({
@@ -79,7 +80,54 @@ watch(() => props.post, (newPost) => {
 // Watch visibility to reset form when shown
 watch(() => props.isVisible, (visible) => {
   if (visible && !isEditMode.value) {
-    resetForm()
+    // Load temporary quote if available and user is not logged in
+    const tempQuote = getTempQuote()
+    if (tempQuote && !authState.value.isLoggedIn) {
+      form.value = {
+        content: tempQuote.content,
+        author: tempQuote.author,
+        source: tempQuote.source,
+        additionalInfo: tempQuote.additionalInfo,
+        private: tempQuote.private
+      }
+    } else {
+      resetForm()
+    }
+  }
+})
+
+// Watch form changes to save to localStorage when not authenticated
+watch(form, (newForm) => {
+  if (!authState.value.isLoggedIn && !isEditMode.value) {
+    // Debounce the save to avoid too frequent updates
+    if (newForm.content.trim() || newForm.author.trim() || newForm.source.trim() || newForm.additionalInfo.trim()) {
+      saveTempQuote({
+        content: newForm.content,
+        author: newForm.author,
+        source: newForm.source,
+        additionalInfo: newForm.additionalInfo,
+        private: newForm.private
+      })
+    }
+  }
+}, { deep: true, immediate: false })
+
+// Watch auth state to handle login/logout transitions
+watch(() => authState.value.isLoggedIn, (isLoggedIn) => {
+  if (isLoggedIn) {
+    // User just logged in - restore temp quote if it exists
+    const tempQuote = getTempQuote()
+    if (tempQuote) {
+      form.value = {
+        content: tempQuote.content,
+        author: tempQuote.author,
+        source: tempQuote.source,
+        additionalInfo: tempQuote.additionalInfo,
+        private: tempQuote.private
+      }
+      // Clear the temp quote since user can now save it properly
+      clearTempQuote()
+    }
   }
 })
 
@@ -92,6 +140,8 @@ const resetForm = () => {
     private: false
   }
   message.value = { text: '', type: '' }
+  // Clear temp quote when resetting form
+  clearTempQuote()
 }
 
 const cancel = () => {
@@ -100,14 +150,7 @@ const cancel = () => {
 }
 
 const submit = async () => {
-  if (!authState.value.isLoggedIn) {
-    message.value = {
-      text: 'You must be logged in to create quotes',
-      type: 'error'
-    }
-    return
-  }
-
+  // Validate required fields
   if (!form.value.content.trim() || !form.value.author.trim() || !form.value.source.trim()) {
     message.value = {
       text: 'Content, author, and source are required',
@@ -116,6 +159,52 @@ const submit = async () => {
     return
   }
 
+  // If user is not logged in, save as temporary quote
+  if (!authState.value.isLoggedIn) {
+    try {
+      loading.value = true
+      message.value = { text: '', type: '' }
+      
+      // Save to localStorage as temporary post
+      const tempPost = saveTempPost({
+        content: form.value.content,
+        author: form.value.author,
+        source: form.value.source,
+        additionalInfo: form.value.additionalInfo,
+        private: form.value.private
+      })
+      
+      if (tempPost) {
+        message.value = {
+          text: 'Quote saved locally on your device! Log in to save it permanently.',
+          type: 'success'
+        }
+        
+        // Clear the draft since we saved it as a temp post
+        clearTempQuote()
+        
+        // Emit success and submit events
+        emit('success')
+        emit('submit', form.value)
+        
+        // Close form after a delay
+        setTimeout(() => {
+          resetForm()
+          emit('cancel')
+        }, 2000)
+      }
+    } catch (error) {
+      message.value = {
+        text: 'Failed to save quote locally',
+        type: 'error'
+      }
+    } finally {
+      loading.value = false
+    }
+    return
+  }
+
+  // User is logged in - save to server
   try {
     loading.value = true
     message.value = { text: '', type: '' }
@@ -143,6 +232,9 @@ const submit = async () => {
     // Emit success and submit events
     emit('success')
     emit('submit', form.value)
+    
+    // Clear temp quote on successful save
+    clearTempQuote()
     
     // Close form after a delay
     setTimeout(() => {
@@ -184,6 +276,19 @@ const submit = async () => {
 
     <!-- Content wrapper -->
     <div class="relative z-10">
+      <!-- Temporary Quote Indicator -->
+      <div v-if="!authState.isLoggedIn && (form.content.trim() || form.author.trim() || form.source.trim() || form.additionalInfo.trim())" class="mb-4">
+        <div class="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-xl p-4 flex items-center gap-3">
+          <div class="bg-gradient-to-r from-amber-400 to-yellow-400 p-2 rounded-full">
+            <Icon name="heroicons:eye-slash-20-solid" class="size-4 text-white" />
+          </div>
+          <div class="flex-1">
+            <h4 class="text-sm font-semibold text-amber-800 mb-1">Temporary Quote</h4>
+            <p class="text-xs text-amber-700">This quote is saved locally on your device. Please log in to save it permanently.</p>
+          </div>
+        </div>
+      </div>
+      
       <!-- Form -->
       <div class="space-y-4 max-w-2xl mx-auto">
         <!-- Success/Error Messages -->
@@ -284,8 +389,8 @@ const submit = async () => {
               {{ submitLoadingText }}
             </span>
             <span v-else class="flex items-center gap-2">
-              <Icon name="line-md:confirm" class="size-4" />
-              {{ submitButtonText }}
+              <Icon :name="authState.isLoggedIn ? 'line-md:confirm' : 'heroicons:device-phone-mobile'" class="size-4" />
+              {{ authState.isLoggedIn ? submitButtonText : 'Save Locally' }}
             </span>
           </button>
         </div>
