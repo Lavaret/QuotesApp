@@ -1,4 +1,4 @@
-import db from '../database'
+import prisma from '../database'
 import jwt from 'jsonwebtoken'
 
 export default defineEventHandler(async (event) => {
@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: number }
       
-      const favorites = await db.userFavorite.findMany({
+      const favorites = await prisma.userFavorite.findMany({
         where: {
           userId: decoded.userId
         },
@@ -60,7 +60,7 @@ export default defineEventHandler(async (event) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: number }
 
       // Check if already favorited
-      const existingFavorite = await db.userFavorite.findUnique({
+      const existingFavorite = await prisma.userFavorite.findUnique({
         where: {
           userId_postId: {
             userId: decoded.userId,
@@ -76,7 +76,7 @@ export default defineEventHandler(async (event) => {
         })
       }
 
-      const favorite = await db.userFavorite.create({
+      const favorite = await prisma.userFavorite.create({
         data: {
           userId: decoded.userId,
           postId: parseInt(postId)
@@ -118,7 +118,7 @@ export default defineEventHandler(async (event) => {
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: number }
 
-      const deleted = await db.userFavorite.deleteMany({
+      const deleted = await prisma.userFavorite.deleteMany({
         where: {
           userId: decoded.userId,
           postId: parseInt(postId)

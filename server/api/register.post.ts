@@ -1,15 +1,15 @@
-import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { defineEventHandler, createError } from 'h3'
 import { redis } from '~/server/utils/redis'
-
-const prisma = new PrismaClient();
+import prisma from '~/server/database';
 
 export default defineEventHandler(async (event: any) => {
-    await incrementRegisterCounter(event)
+    try {
+        await incrementRegisterCounter(event)
 
-    const body = await readBody(event);
+        const body = await readBody(event);
+        console.log('Register request body:', JSON.stringify(body, null, 2));
 
     if (!body.email || !body.password || !body.name) {
         throw createError({ statusCode: 400, statusMessage: "Brak wymaganych danych" });
@@ -44,6 +44,10 @@ export default defineEventHandler(async (event: any) => {
         token, 
         user: { id: user.id, email: user.email, name: user.name } 
     };
+    } catch (error) {
+        console.error('Registration error:', error);
+        throw error;
+    }
 });
 
 const incrementRegisterCounter = async (event: any) => {
