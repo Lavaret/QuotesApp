@@ -1,8 +1,0 @@
-[build.environment]
-  NODE_VERSION = "18"
-
-# Simple redirect for all routes to Nuxt server function
-[[redirects]]
-  from = "/*"
-  to = "/.netlify/functions/server/:splat"
-  status = 200
