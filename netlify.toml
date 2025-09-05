@@ -5,9 +5,10 @@
 [build.environment]
   NODE_VERSION = "18"
 
-[functions]
+[[functions]]
+  path = "/.netlify/functions/*"
   # Increase timeout for database operations
-  timeout = 30
+  max_duration = 30
 
 [[redirects]]
   from = "/_nuxt/*"
