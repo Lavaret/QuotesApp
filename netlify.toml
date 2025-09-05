@@ -5,21 +5,7 @@
 [build.environment]
   NODE_VERSION = "18"
 
-[[functions]]
-  path = "/.netlify/functions/*"
-  # Increase timeout for database operations
-  max_duration = 30
-
-[[redirects]]
-  from = "/_nuxt/*"
-  to = "/.netlify/functions/server/:splat"
-  status = 200
-
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/server/api/:splat"
-  status = 200
-
+# Simple redirect for all routes to Nuxt server function
 [[redirects]]
   from = "/*"
   to = "/.netlify/functions/server/:splat"
