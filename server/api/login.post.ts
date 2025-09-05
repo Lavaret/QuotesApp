@@ -9,6 +9,17 @@ export default defineEventHandler(async (event) => {
         console.log('Database URL exists:', !!process.env.DATABASE_URL);
         console.log('JWT Secret exists:', !!process.env.JWT_SECRET);
         
+        // Validate required environment variables
+        if (!process.env.JWT_SECRET) {
+            console.error('JWT_SECRET is not set');
+            throw createError({ statusCode: 500, statusMessage: "Server configuration error" });
+        }
+        
+        if (!process.env.DATABASE_URL) {
+            console.error('DATABASE_URL is not set');
+            throw createError({ statusCode: 500, statusMessage: "Database configuration error" });
+        }
+        
         const body = await readBody(event);
 
     if (!body.email || !body.password) {

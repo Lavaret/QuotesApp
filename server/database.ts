@@ -11,6 +11,16 @@ const prisma = globalThis.__prisma || new PrismaClient({
       url: process.env.DATABASE_URL,
     },
   },
+  // Important for serverless environments
+  errorFormat: 'minimal',
+  // Reduce connection pool size for serverless
+  ...(process.env.NODE_ENV === 'production' && {
+    datasources: {
+      db: {
+        url: process.env.DATABASE_URL + '?pgbouncer=true&connection_limit=1',
+      },
+    },
+  }),
 })
 
 if (process.env.NODE_ENV !== 'production') {

@@ -6,7 +6,11 @@ export default defineNuxtConfig({
     preset: 'netlify',
     experimental: {
       wasm: true
-    }
+    },
+    // Ensure all API routes work properly
+    routeRules: {
+      '/api/**': { headers: { 'cache-control': 'no-cache' } },
+    },
   },
   modules: [
     '@nuxtjs/tailwindcss',

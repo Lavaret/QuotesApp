@@ -11,6 +11,22 @@ export default defineEventHandler(async (event: any) => {
         console.log('Database URL exists:', !!process.env.DATABASE_URL);
         console.log('JWT Secret exists:', !!process.env.JWT_SECRET);
         
+        // Validate required environment variables
+        if (!process.env.JWT_SECRET) {
+            console.error('JWT_SECRET is not set');
+            throw createError({ statusCode: 500, statusMessage: "Server configuration error" });
+        }
+        
+        if (!process.env.DATABASE_URL) {
+            console.error('DATABASE_URL is not set');
+            throw createError({ statusCode: 500, statusMessage: "Database configuration error" });
+        }
+        
+        if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+            console.error('Redis configuration is missing');
+            throw createError({ statusCode: 500, statusMessage: "Redis configuration error" });
+        }
+        
         await incrementRegisterCounter(event)
 
     const body = await readBody(event);
