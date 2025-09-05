@@ -3,7 +3,13 @@ import jwt from 'jsonwebtoken';
 import prisma from '~/server/database';
 
 export default defineEventHandler(async (event) => {
-    const body = await readBody(event);
+    try {
+        console.log('Login API called');
+        console.log('Environment:', process.env.NODE_ENV);
+        console.log('Database URL exists:', !!process.env.DATABASE_URL);
+        console.log('JWT Secret exists:', !!process.env.JWT_SECRET);
+        
+        const body = await readBody(event);
 
     if (!body.email || !body.password) {
         throw createError({ statusCode: 400, statusMessage: "Brak danych logowania" });
@@ -30,4 +36,14 @@ export default defineEventHandler(async (event) => {
     );
 
     return { token, user: { id: user.id, email: user.email, name: user.name } };
+    
+    } catch (error) {
+        console.error('Login API Error:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name,
+            statusCode: error.statusCode
+        });
+        throw error;
+    }
 });

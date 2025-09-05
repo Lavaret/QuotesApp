@@ -5,11 +5,21 @@ declare global {
 }
 
 const prisma = globalThis.__prisma || new PrismaClient({
-  log: ['query'],
+  log: process.env.NODE_ENV === 'development' ? ['query'] : ['error'],
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL,
+    },
+  },
 })
 
 if (process.env.NODE_ENV !== 'production') {
   globalThis.__prisma = prisma
 }
+
+// Gracefully disconnect on process termination (important for serverless)
+process.on('beforeExit', async () => {
+  await prisma.$disconnect()
+})
 
 export default prisma

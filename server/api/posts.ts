@@ -2,7 +2,12 @@ import prisma from "../database"
 import { requireAuth, verifyAuth } from "../utils/auth"
 
 export default defineEventHandler(async (event: any) => {
-    if (event.method === 'POST') {
+    try {
+        console.log('Posts API called with method:', event.method);
+        console.log('Environment:', process.env.NODE_ENV);
+        console.log('Database URL exists:', !!process.env.DATABASE_URL);
+        
+        if (event.method === 'POST') {
         const body = await readBody(event);
 
         if (!body.author || !body.content) {
@@ -232,4 +237,15 @@ export default defineEventHandler(async (event: any) => {
             id: 'desc'
         }
     });
+    
+    } catch (error) {
+        console.error('Posts API Error:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name,
+            method: event.method,
+            url: event.node?.req?.url
+        });
+        throw error;
+    }
 })

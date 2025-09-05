@@ -6,10 +6,14 @@ import prisma from '~/server/database';
 
 export default defineEventHandler(async (event: any) => {
     try {
+        console.log('Register API called');
+        console.log('Environment:', process.env.NODE_ENV);
+        console.log('Database URL exists:', !!process.env.DATABASE_URL);
+        console.log('JWT Secret exists:', !!process.env.JWT_SECRET);
+        
         await incrementRegisterCounter(event)
 
-        const body = await readBody(event);
-        console.log('Register request body:', JSON.stringify(body, null, 2));
+    const body = await readBody(event);
 
     if (!body.email || !body.password || !body.name) {
         throw createError({ statusCode: 400, statusMessage: "Brak wymaganych danych" });
@@ -44,8 +48,14 @@ export default defineEventHandler(async (event: any) => {
         token, 
         user: { id: user.id, email: user.email, name: user.name } 
     };
+    
     } catch (error) {
-        console.error('Registration error:', error);
+        console.error('Register API Error:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name,
+            statusCode: error.statusCode
+        });
         throw error;
     }
 });
