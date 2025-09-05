@@ -8,6 +8,10 @@ export default defineEventHandler(async (event) => {
             REDIS_URL_EXISTS: !!process.env.UPSTASH_REDIS_REST_URL,
             REDIS_TOKEN_EXISTS: !!process.env.UPSTASH_REDIS_REST_TOKEN,
             DATABASE_URL_PREFIX: process.env.DATABASE_URL?.substring(0, 20) + '...',
+            DATABASE_URL_SUFFIX: process.env.DATABASE_URL?.slice(-10),
+            DATABASE_URL_LENGTH: process.env.DATABASE_URL?.length || 0,
+            DATABASE_URL_CONTAINS_ACCELERATE: process.env.DATABASE_URL?.includes('accelerate.prisma-data.net') || false,
+            DATABASE_URL_CONTAINS_API_KEY: process.env.DATABASE_URL?.includes('api_key=') || false,
             JWT_SECRET_LENGTH: process.env.JWT_SECRET?.length || 0,
         };
 
