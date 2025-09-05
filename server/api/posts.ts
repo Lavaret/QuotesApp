@@ -158,19 +158,61 @@ export default defineEventHandler(async (event: any) => {
         return updatedPost;
     }
 
-    // GET request - return posts with related data, filtering private quotes
+    if (event.method === 'DELETE') {
+        const body = await readBody(event);
+
+        if (!body.id) {
+            throw createError({ statusCode: 400, statusMessage: "ID is required" });
+        }
+
+        // Get authenticated user ID
+        const userId = requireAuth(event);
+
+        // Check if the post exists and belongs to the user
+        const existingPost = await prisma.post.findUnique({
+            where: { id: body.id }
+        });
+
+        if (!existingPost) {
+            throw createError({ statusCode: 404, statusMessage: "Quote not found" });
+        }
+
+        if (existingPost.creatorId !== userId) {
+            throw createError({ statusCode: 403, statusMessage: "You can only delete your own quotes" });
+        }
+
+        // Soft delete - mark as deleted instead of removing from database
+        const deletedPost = await prisma.post.update({
+            where: { id: body.id },
+            data: {
+                is_deleted: true
+            }
+        });
+
+        return { success: true, message: "Quote deleted successfully" };
+    }
+
+    // GET request - return posts with related data, filtering private and deleted quotes
     // Check if user is authenticated (optional for GET)
     const authResult = verifyAuth(event);
     const userId = authResult.isAuthenticated ? authResult.userId : null;
     
-    // Build where clause based on authentication status
+    // Build where clause based on authentication status, always exclude deleted posts
     const whereClause = userId ? {
-        OR: [
-            { private: false },  // Show all public quotes
-            { AND: [{ private: true }, { creatorId: userId }] }  // Show private quotes only for the author
+        AND: [
+            { is_deleted: false },  // Always exclude deleted posts
+            {
+                OR: [
+                    { private: false },  // Show all public quotes
+                    { AND: [{ private: true }, { creatorId: userId }] }  // Show private quotes only for the author
+                ]
+            }
         ]
     } : {
-        private: false  // Show only public quotes for unauthenticated users
+        AND: [
+            { is_deleted: false },  // Always exclude deleted posts
+            { private: false }  // Show only public quotes for unauthenticated users
+        ]
     };
     
     return prisma.post.findMany({

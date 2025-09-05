@@ -22,4 +22,12 @@ export default defineNuxtConfig({
       ErrorMessage: 'VeeErrorMessage',
     },
   },
+  ssr: true,
+  // Suppress hydration warnings for theme-related differences
+  vue: {
+    compilerOptions: {
+      // This can help with hydration issues
+      suppressHydrationWarning: false
+    }
+  },
 })

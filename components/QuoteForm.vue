@@ -270,9 +270,9 @@ const submit = async () => {
 </script>
 
 <template>
-  <div class="bg-white/70 backdrop-blur-sm border border-pink-100 rounded-md p-6 shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden group">
+  <div class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border border-pink-100 dark:border-gray-600 rounded-md p-6 shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden group">
     <!-- Decorative gradient background -->
-    <div class="absolute inset-0 bg-gradient-to-br from-pink-50/50 via-white/50 to-rose-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+    <div class="absolute inset-0 bg-gradient-to-br from-pink-50/50 via-white/50 to-rose-50/50 dark:from-gray-800/50 dark:via-gray-800/50 dark:to-gray-700/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
     <!-- Content wrapper -->
     <div class="relative z-10">
@@ -293,15 +293,17 @@ const submit = async () => {
       <div class="space-y-4 max-w-2xl mx-auto">
         <!-- Success/Error Messages -->
         <div v-if="message.text" :class="[
-          'text-sm p-3 rounded-md',
-          message.type === 'success' ? 'bg-green-100 text-green-700 border border-green-300' : 'bg-red-100 text-red-700 border border-red-300'
+          'text-sm p-3 rounded-md transition-colors duration-200',
+          message.type === 'success' 
+            ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-200 border border-green-300 dark:border-green-800' 
+            : 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-200 border border-red-300 dark:border-red-800'
         ]">
           {{ message.text }}
         </div>
 
         <!-- Quote Content -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Quote Content *</label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">Quote Content *</label>
           <textarea
               v-model="form.content"
               class="quote-input w-full p-3 rounded-xl min-h-[120px] resize-none"
@@ -312,7 +314,7 @@ const submit = async () => {
 
         <!-- Author -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Author *</label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">Author *</label>
           <input
               v-model="form.author"
               type="text"
@@ -325,7 +327,7 @@ const submit = async () => {
         <!-- Source and Additional Info -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Source *</label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">Source *</label>
             <input
                 v-model="form.source"
                 type="text"
@@ -335,7 +337,7 @@ const submit = async () => {
             />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Additional Info</label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">Additional Info</label>
             <input
                 v-model="form.additionalInfo"
                 type="text"
@@ -347,17 +349,17 @@ const submit = async () => {
         </div>
 
         <!-- Private Quote Toggle -->
-        <div class="flex items-center justify-between p-4 bg-gray-50/50 rounded-xl border border-gray-200">
+        <div class="flex items-center justify-between p-4 bg-gray-50/50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600 transition-colors duration-200">
           <div class="flex flex-col">
-            <label class="text-sm font-medium text-gray-700 mb-1">Private Quote</label>
-            <p class="text-xs text-gray-500">Private quotes are only visible to you</p>
+            <label class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors duration-200">Private Quote</label>
+            <p class="text-xs text-gray-500 dark:text-gray-400 transition-colors duration-200">Private quotes are only visible to you</p>
           </div>
           <button
               @click="form.private = !form.private"
               type="button"
               :class="[
-                'relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2',
-                form.private ? 'bg-pink-500' : 'bg-gray-200'
+                'relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-pink-500 dark:focus:ring-pink-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800',
+                form.private ? 'bg-pink-500 dark:bg-pink-600' : 'bg-gray-200 dark:bg-gray-600'
               ]"
               :disabled="loading"
           >
@@ -402,15 +404,15 @@ const submit = async () => {
 <style scoped>
 /* Quote form input styling */
 .quote-input {
-  @apply bg-white/80 backdrop-blur-sm border-2 border-pink-200 rounded-xl transition-all duration-200 focus:outline-none focus:border-pink-400 focus:ring-4 focus:ring-pink-100 shadow-sm hover:shadow-md;
+  @apply bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border-2 border-pink-200 dark:border-gray-600 rounded-xl transition-all duration-200 focus:outline-none focus:border-pink-400 dark:focus:border-pink-500 focus:ring-4 focus:ring-pink-100 dark:focus:ring-pink-900/50 shadow-sm hover:shadow-md text-gray-900 dark:text-gray-100;
 }
 
 .quote-input::placeholder {
-  @apply text-sm text-gray-400;
+  @apply text-sm text-gray-400 dark:text-gray-500;
 }
 
 .quote-input:disabled {
-  @apply bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200;
+  @apply bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed border-gray-200 dark:border-gray-700;
 }
 
 /* Button styling with enhanced pink/black theme */
